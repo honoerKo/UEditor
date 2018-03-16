@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+    
+    <!-- 自动扫描 -->
+    <context:component-scan base-package="com.fileupload" /> 
+            
+	<!-- 引入jdbc文件 -->
+	<bean id="propertyConfigurer"  
+        class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">  
+        <property name="location" value="classpath:jdbc.properties" />  
+    </bean>
+	
+	<!-- 配置数据库连接池 Bean -->    
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <!-- Connection Info -->
+        <property name="driverClassName" value="${jdbc.driverClassName}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<!-- Connection Pooling Info -->
+		<property name="initialSize" value="${pool.initialSize}" />
+		<property name="maxActive" value="${pool.maxActive}" /><!-- 最大连接数据库连接数，设置为0时，表示没有限制 -->
+		<property name="maxIdle" value="${pool.maxIdle}" /><!-- 最大等待连接中的数量，设置为0时，表示没有限制 -->
+		<property name="minIdle" value="${pool.minIdle}" />
+		<property name="maxWait" value="${pool.maxWait}" /><!-- 最大等待秒数，单位为毫秒， 超过时间会报出错误信息 -->
+    </bean>
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    	<property name="dataSource" ref="dataSource"/>
+    	<!-- 自动扫描mapping.xml文件 -->  <!--  value="classpath:com/textupload/mapping/*.xml"  -->
+        <property name="mapperLocations" value="classpath:com/fileupload/mapping/*.xml">
+        </property>
+    </bean>
+    
+	<!-- DAO接口所在包名，Spring会自动查找其下的类    -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">  
+        <property name="basePackage" value="com.fileupload.dao" /> 
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />  
+    </bean> 
+    
+    <!-- 配置事务
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">  
+        <property name="dataSource" ref="dataSource" />  
+    </bean> -->
+    <!-- 使用声明方式配置事务
+    <tx:advice id="TxAdvice" transaction-manager="transactionManager">  
+        <tx:attributes>  
+            <tx:method name="*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>  
+        </tx:attributes>  
+    </tx:advice> -->
+    
+</beans>
