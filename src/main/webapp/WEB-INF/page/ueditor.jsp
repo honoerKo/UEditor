@@ -173,11 +173,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			})
 	    }
 	    function toWord(){
-	    	if(!$('#show').is(':Empty')){
-	    		$('#show').wordExport(title)
-	    	}else{
-	    		alert("请先打印数据！")
-	    	}
+	    	$('#show').wordExport(title)	    	
 	    }
 	    function back(){
 	    	$('#showdiv').hide()

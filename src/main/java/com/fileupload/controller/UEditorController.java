@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.fileupload.model.FileUpload;
 import com.fileupload.service.IFileUploadService;
-import com.fileupload.util.fileOperating;
-import com.fileupload.util.stringOperating;
+import com.fileupload.util.FileOperating;
+import com.fileupload.util.StringOperating;
 
 /**
  * 建立用户系统，以用户名单独创建临时文件夹
@@ -30,9 +30,9 @@ public class UEditorController {
 	@Resource
 	IFileUploadService fuService;
 	@Autowired
-	stringOperating strOpe;
+	StringOperating strOpe;
 	@Autowired
-	fileOperating fileOpe;
+	FileOperating fileOpe;
 	
 	@RequestMapping("/save")
 	public void save(HttpServletRequest request,HttpServletResponse response){
@@ -40,29 +40,23 @@ public class UEditorController {
 			String msg = null;
 			//获取项目的根路径
 			String requestPath = request.getSession().getServletContext().getRealPath("/");
-			//System.out.println("requestPath:"+requestPath);
 			//接收前端数据
 			FileUpload fileUpload = new FileUpload();
 			String strHtml = request.getParameter("detail");
 			String strTitle = request.getParameter("title");
-			//System.out.println("strHtml:"+strHtml);
-			//System.out.println("strTitle:"+strTitle);
 			//获取数据内全部img标签的src地址
-			List<String> imageSrcList = strOpe.getImageSrc(strHtml);
+			List<String> imageSrcList = strOpe.getImageSrc(strHtml);//文件上传视频上传类似
 			if(imageSrcList != null && imageSrcList.size() != 0){
 				//创建目标文件夹
 				String newSrcPath = "E:/image/fileupload/img/";
 				String folderPath = fileOpe.getDate();
 				String filePath = newSrcPath + folderPath;
 				File fi = new File(filePath);
-				if(!fi.exists()) fi.mkdirs();//文件不存在创建中间文件夹
+				if(!fi.exists()) fi.mkdirs();//文件不存在时创建中间文件夹
 				for (String src : imageSrcList) {
 					String[] srcSpl = src.split("/");
-					/*for (String string : srcSpl) {
-						System.out.println(string);
-					}*/
 					String oldSrcPath = null;
-					if("http:".equals(srcSpl[0])){
+					if("https:".equals(srcSpl[0]) || "http:".equals(srcSpl[0])){
 						//网络图片											
 						oldSrcPath = src;
 						if("api.map.baidu.com".equals(srcSpl[2])){
@@ -72,9 +66,9 @@ public class UEditorController {
 							String[] centers = staticimage[0].split("=");
 							String[] zooms = staticimage[1].split("=");
 							String name = centers[1]+"."+zooms[1]+".jpg";
-							newSrcPath = newSrcPath + folderPath + "/" + name;
+							newSrcPath = filePath + "/" + name;
 						}else{
-							newSrcPath = newSrcPath + folderPath + "/" + srcSpl[srcSpl.length-1];
+							newSrcPath = filePath + "/" + srcSpl[srcSpl.length-1];
 						}						
 						try {
 							int i = fileOpe.uploadWebImage(oldSrcPath, newSrcPath);
@@ -84,26 +78,22 @@ public class UEditorController {
 								msg = "error0";
 							}
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
 							msg = "error1";
 						}
-					}else{
+					}else if("FileUpload".equals(srcSpl[1])){
 						//本地图片&&UEditor编辑器图片
 						oldSrcPath = requestPath + srcSpl[2] + "\\" + srcSpl[3] + "\\" + srcSpl[4] + "\\" + srcSpl[5] + "\\" + srcSpl[6];					
 						newSrcPath = filePath + "/" + srcSpl[6];
-						//System.out.println("newSrcPath1:"+newSrcPath);
 						//将oldSrcPath写入newSrcPath
 						try {
 							//将临时文件夹中发布的文件转存入固定文件夹
 							int i = fileOpe.copyImage(oldSrcPath, newSrcPath);
 							if(i == 1){
 								strHtml = strHtml.replace(src, newSrcPath.substring(2));
-								//System.out.println("strHtml:"+strHtml);
 							}else {
 								msg = "error0";
 							}
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
 							msg = "error1";
 						}	
 					}
@@ -131,7 +121,6 @@ public class UEditorController {
 			response.setCharacterEncoding("UTF-8");
 			response.getWriter().print(msg);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -154,14 +143,12 @@ public class UEditorController {
 					msg = "{\"msg\":\"查询结果为空\"}";
 				}
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				msg = "{\"msg\":\"获取失败！\",\"value\":0}";
 			}
 			response.setContentType("text/html;charset=UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.getWriter().print(msg);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
